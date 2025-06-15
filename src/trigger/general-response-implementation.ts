@@ -127,7 +127,7 @@ function identifyBotQuestions(conversation: ConversationMessage[], currentMessag
   // Patterns that indicate questions directed at the bot
   const botQuestionPatterns = [
     /@l\s+bot/i,
-    /@uwularpy/i,
+    /@devwif/i,
     /what.*do.*you.*think/i,
     /can.*you.*help/i,
     /do.*you.*know/i,
@@ -183,7 +183,7 @@ async function generateContextualResponse(
       ? `\n\nSpecific questions/requests directed at me:\n${botQuestions.map(q => `${q.author}: ${q.body}`).join('\n')}`
       : '';
     
-    const systemPrompt = `You are uwularpy, a helpful GitHub bot assistant. You help developers with code reviews, planning, and general development questions.
+    const systemPrompt = `You are devwifAI, a helpful GitHub bot assistant. You help developers with code reviews, planning, and general development questions.
 
 Your capabilities include:
 - Code review (@l review or @l r)

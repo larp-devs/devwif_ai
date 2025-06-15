@@ -315,7 +315,7 @@ ${formatRepositoryStatistics(repoStats)}
 
 ## Changes
 - Uwuified all markdown files in the repository using the Rust binary implementation
-- Created by @uwularpy bot
+- Created by @devwif bot
 `,
       });
       

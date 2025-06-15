@@ -39,8 +39,8 @@ export async function POST(request: NextRequest) {
     const event = request.headers.get('x-github-event');
     
     // Process issue_comment events for user commands
-    // Allow self-triggering only with "self@" prefix, otherwise exclude uwularpy bot messages
-    const isFromBot = body.comment?.user?.login === 'uwularpy';
+    // Allow self-triggering only with "self@" prefix, otherwise exclude devwif bot messages
+    const isFromBot = body.comment?.user?.login === 'devwif';
     const hasSelfPrefix = body.comment?.body?.includes('self@');
     const shouldProcess = !isFromBot || (isFromBot && hasSelfPrefix);
     
