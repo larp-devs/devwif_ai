@@ -19,7 +19,7 @@ jest.mock('openai', () => {
 });
 
 // Import the mocked module to get access to the mocks
-const OpenAI = require('openai').default;
+import OpenAI from 'openai';
 
 describe('Code Generation with OpenAI API', () => {
   // Mock environment for testing
@@ -62,7 +62,7 @@ describe('Code Generation with OpenAI API', () => {
     // Clear any timers to prevent interference only if needed
     try {
       jest.clearAllTimers();
-    } catch (error) {
+    } catch {
       // Ignore timer errors if fake timers aren't enabled
     }
   });
@@ -82,7 +82,7 @@ describe('Code Generation with OpenAI API', () => {
     // Clear any remaining timers only if fake timers are being used
     try {
       jest.clearAllTimers();
-    } catch (error) {
+    } catch {
       // Ignore timer errors if fake timers aren't enabled
     }
     
@@ -114,7 +114,7 @@ describe('Code Generation with OpenAI API', () => {
   });
 
   test('should throw error when OPENAI_API_KEY is not a string', async () => {
-    // @ts-ignore - Testing invalid type
+    // @ts-expect-error - Testing invalid type
     process.env.OPENAI_API_KEY = 123;
     
     await expect(generateCodeChanges('test prompt')).rejects.toThrow('OPENAI_API_KEY must be a string value');
@@ -223,7 +223,7 @@ describe('Code Generation with OpenAI API', () => {
         await generateCodeChanges('test prompt');
         // Should still work but may have logged a warning
         expect(mockCreate).toHaveBeenCalledTimes(1);
-      } catch (error) {
+      } catch {
         // This test is about the warning, not whether it fails
       } finally {
         console.warn = originalConsole;
@@ -364,7 +364,7 @@ describe('Code Generation with OpenAI API', () => {
 
     test('should validate model configuration at runtime', async () => {
       // Mock a successful response to verify config is passed correctly
-      const response = await generateCodeChanges('test prompt');
+      await generateCodeChanges('test prompt');
       
       expect(mockCreate).toHaveBeenCalledWith(
         expect.objectContaining({

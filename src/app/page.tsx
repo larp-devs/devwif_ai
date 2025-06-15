@@ -45,7 +45,7 @@ export default function Home() {
               Powerful AI Assistant Capabilities
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              UwUlarpy goes beyond simple automation - it's your intelligent coding companion
+              UwUlarpy goes beyond simple automation - it&apos;s your intelligent coding companion
             </p>
           </div>
 
