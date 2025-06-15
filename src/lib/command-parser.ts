@@ -35,7 +35,7 @@ function sanitizeText(text: string): string {
 }
 
 /**
- * Parses a GitHub comment to extract uwularpy commands
+ * Parses a GitHub comment to extract devwifAI commands
  * Enhanced with safety checks and edge case handling
  * @param comment The comment text to parse
  * @returns ParsedCommand object with extracted information
@@ -60,21 +60,17 @@ export function parseCommand(comment: string): ParsedCommand {
     return parseCommand(truncated);
   }
   
-  // Check if the comment mentions @uwularpy, @l, or self@ with various patterns
+  // Check if the comment mentions @devwif or self@ with various patterns
   // Handle multiple mentions by taking the first one
-  // IMPORTANT: @l should only trigger when at the beginning of the message
   const mentionPatterns = [
-    /^\s*@uwularpy\b/i,
+    /^\s*@devwif\b/i,
+    /@devwif\b/i,
     /self@/i
   ];
   
-  // Check for @l only at the beginning (after optional whitespace)
-  const atLBeginningPattern = /^\s*@l\b/i;
+  const hasDevwif = mentionPatterns.some(pattern => pattern.test(sanitizedComment));
   
-  const hasUwularpy = mentionPatterns.some(pattern => pattern.test(sanitizedComment));
-  const hasAtLAtBeginning = atLBeginningPattern.test(sanitizedComment);
-  
-  const isMention = hasUwularpy || hasAtLAtBeginning;
+  const isMention = hasDevwif;
   
   if (!isMention) {
     return {
@@ -86,15 +82,11 @@ export function parseCommand(comment: string): ParsedCommand {
 
   // Extract text after the mention (case-insensitive, allow for punctuation/whitespace)
   // Updated regex to handle edge cases better, including self@ prefix
-  // For @l, only match if it's at the beginning of the message
   let match;
   
-  if (hasAtLAtBeginning) {
-    // For @l at beginning, extract everything after @l
-    match = sanitizedComment.match(/^\s*@l\s*([\s\S]*?)(?=@\w+|$)/i);
-  } else if (hasUwularpy) {
-    // For @uwularpy or self@, use the original logic (can be anywhere)
-    match = sanitizedComment.match(/@(uwularpy)\s*([\s\S]*?)(?=@\w+|$)/i) || 
+  if (hasDevwif) {
+    // For @devwif or self@, extract everything after the mention
+    match = sanitizedComment.match(/@devwif\s*([\s\S]*?)(?=@\w+|$)/i) || 
             sanitizedComment.match(/self@\s*(.+?)(?=@\w+|$)/i);
   }
   
@@ -104,12 +96,9 @@ export function parseCommand(comment: string): ParsedCommand {
     if (match[0].startsWith('self@')) {
       // For self@ mentions, the command is in match[1]
       textAfterMention = (match[1] || '').trim();
-    } else if (hasAtLAtBeginning) {
-      // For @l at beginning, the command is in match[1]
-      textAfterMention = (match[1] || '').trim();
     } else {
-      // For @uwularpy mentions, the command is in match[2]
-      textAfterMention = (match[2] || '').trim();
+      // For @devwif mentions, the command is in match[1]
+      textAfterMention = (match[1] || '').trim();
     }
   }
   
@@ -117,7 +106,7 @@ export function parseCommand(comment: string): ParsedCommand {
   textAfterMention = textAfterMention.replace(/\s+/g, ' ').trim();
 
   // Handle edge case where mention is at the end with no command
-  if (!textAfterMention && (/@(uwularpy)\s*$/i.test(sanitizedComment) || /self@\s*$/i.test(sanitizedComment) || /^\s*@l\s*$/i.test(sanitizedComment))) {
+  if (!textAfterMention && (/@devwif\s*$/i.test(sanitizedComment) || /self@\s*$/i.test(sanitizedComment))) {
     return {
       command: '',
       fullText: '',
@@ -136,7 +125,7 @@ export function parseCommand(comment: string): ParsedCommand {
     userQuery = refineCommandMatch[2].trim();
   }
 
-  // Check if this is a "@l dev " command specifically
+  // Check if this is a "@devwif dev " command specifically
   const isDevCommand = textAfterMention.toLowerCase().startsWith('dev ');
 
   return {
@@ -196,15 +185,15 @@ export async function getTaskType(
     return 'plan-approval-task';
   }
 
-  // IMPORTANT: Only "@l dev " commands should trigger codex-task
+  // IMPORTANT: Only "@devwif dev " commands should trigger codex-task
   if (parsedCommand.isDevCommand) {
     console.log('[getTaskType] Detected dev command, routing to codex-task:', normalizedCommand);
     return 'codex-task';
   }
 
-  // For other @l commands, we analyze the thread and provide contextual responses
+  // For other @devwif commands, we analyze the thread and provide contextual responses
   // This fetches all messages from the thread and generates appropriate responses
-  console.log('[getTaskType] Non-dev @l command detected, routing to general response:', normalizedCommand);
+  console.log('[getTaskType] Non-dev @devwif command detected, routing to general response:', normalizedCommand);
   return 'general-response-task';
 }
 

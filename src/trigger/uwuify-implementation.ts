@@ -7,7 +7,7 @@ import { GitHubContext, RepoStats } from "../services/task-types";
 import { uwuifyRepository, getTopContributorsByMergedPRs } from "../lib/binary-uwuify";
 
 // Export the implementation function
-export async function runUwuifyTask(payload: GitHubContext, ctx: any) {
+export async function runUwuifyTask(payload: GitHubContext, _ctx: any) {
   logger.log("Starting uwuification process", { payload });
 
   try {
@@ -315,7 +315,7 @@ ${formatRepositoryStatistics(repoStats)}
 
 ## Changes
 - Uwuified all markdown files in the repository using the Rust binary implementation
-- Created by @uwularpy bot
+- Created by @devwif bot
 `,
       });
       

@@ -41,7 +41,7 @@ describe('Git Utilities E2E Tests', () => {
     if (testRepoPath) {
       try {
         await fs.rm(testRepoPath, { recursive: true, force: true });
-      } catch (_error) {
+      } catch {
         // Ignore cleanup errors
       }
     }

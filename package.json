@@ -1,7 +1,7 @@
 {
-  "name": "uwularpy",
+  "name": "devwifai",
   "version": "1.0.2",
-  "description": "A Next.js application that uwuifies markdown files in GitHub repositories when mentioned in issue comments",
+  "description": "A Next.js application that provides AI-powered GitHub assistant for interactive code development, reviews, and implementation",
   "scripts": {
     "dev": "next dev",
     "build": "npm run lint:check && npm run type-check && NEXT_DISABLE_ESLINT=1 next build",
@@ -31,6 +31,7 @@
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
+    "@netlify/plugin-nextjs": "^5.11.2",
     "@tailwindcss/postcss": "^4.1.8",
     "@trigger.dev/build": "^3.3.17",
     "@types/jest": "^29.5.14",
