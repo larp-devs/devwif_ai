@@ -332,10 +332,19 @@ UwUlarpy supports multiple deployment options to fit your infrastructure needs:
 
 ### Netlify
 
-1. **Build command**: `npm run build`
-2. **Publish directory**: `dist`
-3. **Environment variables**: Same as Vercel setup
-4. **Functions**: Enable Netlify Functions for API routes
+1. **Fork the repository** to your GitHub account
+2. **Connect to Netlify**:
+   - Go to [netlify.com](https://netlify.com) and sign in
+   - Click "New site from Git" and connect your repository
+   - Netlify will automatically detect the `netlify.toml` configuration
+3. **Set environment variables** in Netlify:
+   ```
+   APP_ID=your_github_app_id
+   PRIVATE_KEY=your_private_key
+   WEBHOOK_SECRET=your_webhook_secret
+   ```
+4. **Deploy** - Netlify will automatically deploy on push
+5. **Configure**: The `netlify.toml` file handles build settings and API routes
 
 ### Self-Hosted
 
