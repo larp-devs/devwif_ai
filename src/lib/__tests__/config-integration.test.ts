@@ -508,10 +508,9 @@ describe('Configuration System Tests', () => {
       const partialConfig = {
         fileOperations: {
           backupTTL: 30000,
-          // @ts-expect-error - Testing edge case with invalid value
-          minSecurityScore: 'invalid'
+          minSecurityScore: 'invalid' as any
         }
-      };
+      } as any;
 
       // Should not throw and should handle gracefully
       expect(() => setGlobalConfig(partialConfig)).not.toThrow();

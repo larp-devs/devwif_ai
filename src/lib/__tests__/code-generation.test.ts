@@ -38,14 +38,14 @@ describe('Code Generation with OpenAI API', () => {
     jest.restoreAllMocks();
     
     // Explicitly reset OpenAI constructor and all its instances
-    OpenAI.mockClear();
-    OpenAI.mockReset();
-    if (OpenAI.mockRestore) {
-      OpenAI.mockRestore();
+    (OpenAI as any).mockClear();
+    (OpenAI as any).mockReset();
+    if ((OpenAI as any).mockRestore) {
+      (OpenAI as any).mockRestore();
     }
     
     // Set up fresh mock implementation
-    OpenAI.mockImplementation(() => ({
+    (OpenAI as any).mockImplementation(() => ({
       chat: {
         completions: {
           create: jest.fn().mockResolvedValue({
@@ -56,7 +56,7 @@ describe('Code Generation with OpenAI API', () => {
     }));
     
     // Get fresh mock instance and set up the mock reference
-    const mockInstance = new OpenAI();
+    const mockInstance = new (OpenAI as any)();
     mockCreate = mockInstance.chat.completions.create as jest.Mock;
     
     // Clear any timers to prevent interference only if needed
@@ -87,8 +87,8 @@ describe('Code Generation with OpenAI API', () => {
     }
     
     // Explicitly clean OpenAI mock state
-    if (OpenAI.mockClear) {
-      OpenAI.mockClear();
+    if ((OpenAI as any).mockClear) {
+      (OpenAI as any).mockClear();
     }
     
     // Force garbage collection of any retained references (if available)

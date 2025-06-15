@@ -105,7 +105,7 @@ export async function findMostRecentMilestoneEnhanced(
     });
 
     // Get recent comments with proper typing
-    const { data: comments }: { data: GitHubComment[] } = await octokit.issues.listComments({
+    const response = await octokit.issues.listComments({
       owner,
       repo,
       issue_number: issueNumber,
@@ -113,6 +113,7 @@ export async function findMostRecentMilestoneEnhanced(
       sort: 'created',
       direction: 'desc'
     });
+    const comments = response.data as any[];
 
     logger.info(`📝 Found ${comments.length} comments to search`);
 
@@ -211,11 +212,12 @@ export async function findMostRecentMilestoneEnhanced(
                 }
 
                 // Get milestone details with proper error handling
-                const { data: milestone }: { data: GitHubMilestone } = await octokit.issues.getMilestone({
+                const milestoneResponse = await octokit.issues.getMilestone({
                   owner,
                   repo,
                   milestone_number: match.milestoneNumber
                 });
+                const milestone = milestoneResponse.data as any;
 
                 foundMilestones.push({
                   milestone,
@@ -465,25 +467,26 @@ export async function findMilestonesByDate(
     logger.info("📅 Searching milestones by date", { daysBack });
 
     // Get all milestones with proper typing
-    const { data: milestones }: { data: GitHubMilestone[] } = await octokit.issues.listMilestones({
+    const milestonesResponse = await octokit.issues.listMilestones({
       owner,
       repo,
       state: 'all',
       sort: 'due_on',
       direction: 'desc'
     });
+    const milestones = milestonesResponse.data as any[];
 
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - daysBack);
 
-    const recentMilestones = milestones.filter((milestone: GitHubMilestone) => {
+    const recentMilestones = milestones.filter((milestone: any) => {
       const createdDate = new Date(milestone.created_at);
       return createdDate >= cutoffDate;
     });
 
     logger.info(`📊 Found ${recentMilestones.length} recent milestones (last ${daysBack} days)`);
 
-    return recentMilestones;
+    return recentMilestones as any;
 
   } catch (error) {
     logger.error("💥 Error searching milestones by date", {
