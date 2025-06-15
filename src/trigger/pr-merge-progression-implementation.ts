@@ -4,8 +4,7 @@ import { GitHubContext } from "../services/task-types";
 import { createAuthenticatedOctokit } from "./github-auth";
 import { COPILOT_USERNAME, TITLE_SIMILARITY_THRESHOLD } from "./workflow-constants";
 import {
-  ISSUE_LABELS,
-  ISSUE_PRIORITIES
+  ISSUE_LABELS
 } from "./plan-implementation";
 
 // Define interfaces for GitHub objects
@@ -52,7 +51,7 @@ interface GitHubUser {
 }
 
 // Export the PR merge progression implementation function
-export async function runPRMergeProgressionTask(payload: GitHubContext, ctx: any) {
+export async function runPRMergeProgressionTask(payload: GitHubContext, _ctx: any) {
   logger.info("Starting PR merge progression task - advancing to next issue", { payload });
   const { owner, repo, issueNumber: prNumber, installationId } = payload;
 
@@ -172,7 +171,7 @@ async function findRelatedCopilotIssue(
         if (issue.labels.some((label: any) => label.name === 'copilot-assigned')) {
           return issue as GitHubIssue;
         }
-      } catch (error) {
+      } catch {
         logger.warn("Referenced issue not found", { issueNumber });
       }
     }

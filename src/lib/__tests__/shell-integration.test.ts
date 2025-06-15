@@ -2,7 +2,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { sanitizeForShell, safeGitCommit, safeGitCommand } from '../git-utils';
+import { sanitizeForShell, safeGitCommand } from '../git-utils';
 
 describe('Shell Integration Tests - Unusual Filenames', () => {
   let tempDir: string;
@@ -26,7 +26,7 @@ describe('Shell Integration Tests - Unusual Filenames', () => {
     // Clean up temporary directory
     try {
       fs.rmSync(tempDir, { recursive: true, force: true });
-    } catch (error) {
+    } catch {
       // Ignore cleanup errors
     }
   });

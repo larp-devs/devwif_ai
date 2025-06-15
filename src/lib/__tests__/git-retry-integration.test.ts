@@ -54,7 +54,7 @@ describe('Git Retry Integration Tests', () => {
     // Clean up temporary directory
     try {
       fs.rmSync(tempDir, { recursive: true, force: true });
-    } catch (error) {
+    } catch {
       // Ignore cleanup errors
     }
   });
@@ -253,7 +253,7 @@ describe('Git Retry Integration Tests', () => {
           cwd: testRepoPath, 
           stdio: 'inherit' 
         });
-      } catch (error) {
+      } catch {
         // May fail to add remote, which is fine for this test
       }
       
@@ -288,7 +288,7 @@ describe('Git Retry Integration Tests', () => {
           cwd: testRepoPath, 
           stdio: 'inherit' 
         });
-      } catch (error) {
+      } catch {
         // May fail, which is fine for this test
       }
       

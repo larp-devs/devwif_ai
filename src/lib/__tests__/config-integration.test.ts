@@ -1,7 +1,6 @@
 // Tests for configuration system and its integration with operations
 import { 
   setGlobalConfig, 
-  getGlobalConfig, 
   getFileOperationsConfig, 
   getGitOperationsConfig,
   getCodeGenerationConfig,
@@ -10,8 +9,7 @@ import {
   validateConfig,
   createPresetConfig,
   DEFAULT_FILE_OPERATIONS_CONFIG,
-  DEFAULT_GIT_OPERATIONS_CONFIG,
-  DEFAULT_CODE_GENERATION_CONFIG
+  DEFAULT_GIT_OPERATIONS_CONFIG
 } from '../config';
 
 import { 
@@ -72,7 +70,7 @@ describe('Configuration System Tests', () => {
     // Clean up temp directory
     try {
       fs.rmSync(tempDir, { recursive: true, force: true });
-    } catch (error) {
+    } catch {
       // Ignore cleanup errors
     }
   });
@@ -324,7 +322,7 @@ describe('Configuration System Tests', () => {
       fs.writeFileSync(path.join(tempDir, testFile), content);
 
       // Even a relatively safe operation might not meet 90 threshold
-      const result = applySearchReplace(testFile, 'safe', 'modified', tempDir);
+      applySearchReplace(testFile, 'safe', 'modified', tempDir);
       
       // The exact result depends on the scoring algorithm, but the config should be respected
       const fileConfig = getFileOperationsConfig();
@@ -344,7 +342,7 @@ describe('Configuration System Tests', () => {
       const searchText = 'function test()';
       const replaceText = 'function test() /* complex modification */';
 
-      const validation = validateSearchReplaceBlock(filePath, searchText, replaceText, content);
+      validateSearchReplaceBlock(filePath, searchText, replaceText, content);
       
       // Strict mode should enforce higher standards
       const fileConfig = getFileOperationsConfig();
@@ -423,7 +421,7 @@ describe('Configuration System Tests', () => {
       
       try {
         await safeGitPushWithRetry('/nonexistent/path', 'delay-test');
-      } catch (error) {
+      } catch {
         const duration = Date.now() - startTime;
         
         // With maxDelay=400, delays should be: 200ms, 400ms (capped), 400ms (capped)
@@ -499,7 +497,7 @@ describe('Configuration System Tests', () => {
 
   describe('Error Handling and Edge Cases', () => {
     test('should handle undefined and null configuration values', () => {
-      // @ts-ignore - Testing edge case
+      // @ts-expect-error - Testing edge case
       setGlobalConfig(null);
       
       const config = getFileOperationsConfig();
@@ -510,7 +508,7 @@ describe('Configuration System Tests', () => {
       const partialConfig = {
         fileOperations: {
           backupTTL: 30000,
-          // @ts-ignore - Testing edge case with invalid value
+          // @ts-expect-error - Testing edge case with invalid value
           minSecurityScore: 'invalid'
         }
       };

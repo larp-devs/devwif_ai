@@ -6,8 +6,6 @@ import {
   applySearchReplace, 
   validateSearchReplaceBlock, 
   processSearchReplaceBlocks,
-  safeReadFile,
-  safeWriteFile,
   validateSearchReplaceBlockStructure
 } from '../file-operations';
 
@@ -28,7 +26,7 @@ describe('File Operations Integration Tests', () => {
     // Clean up temporary directory
     try {
       fs.rmSync(tempDir, { recursive: true, force: true });
-    } catch (error) {
+    } catch {
       // Ignore cleanup errors
     }
   });

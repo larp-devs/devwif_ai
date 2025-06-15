@@ -3,7 +3,6 @@ import { Octokit } from "@octokit/rest";
 import { GitHubContext } from "../services/task-types";
 import { createAuthenticatedOctokit } from "./github-auth";
 import { 
-  BOT_USERNAME, 
   REVIEW_COMMAND, 
   TITLE_SIMILARITY_THRESHOLD,
   checkRateLimit,
@@ -13,19 +12,7 @@ import {
 } from "./workflow-constants";
 
 // Define interfaces for GitHub objects
-interface GitHubPullRequest {
-  id: number;
-  number: number;
-  title: string;
-  body: string | null;
-  state: 'open' | 'closed';
-  url: string;
-  html_url: string;
-  user: GitHubUser;
-  labels: GitHubLabel[];
-  created_at: string;
-  updated_at: string;
-}
+// (Removed unused GitHubPullRequest interface)
 
 interface GitHubLabel {
   id: number;
@@ -57,7 +44,7 @@ interface GitHubIssue {
 }
 
 // Export the PR monitoring implementation function
-export async function runPRMonitoringTask(payload: GitHubContext, ctx: any) {
+export async function runPRMonitoringTask(payload: GitHubContext, _ctx: any) {
   logger.info("Starting PR monitoring task - checking for copilot assignment", { payload });
   const { owner, repo, issueNumber: prNumber, installationId } = payload;
 
@@ -168,7 +155,7 @@ async function findRelatedCopilotIssue(
         if (issue.labels.some((label: any) => label.name === 'copilot-assigned')) {
           return issue as GitHubIssue;
         }
-      } catch (error) {
+      } catch {
         logger.warn("Referenced issue not found", { issueNumber });
       }
     }
