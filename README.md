@@ -1,10 +1,10 @@
-# UwUlarpy
+# devwifAI
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
-A powerful Next.js application that transforms your GitHub repositories through AI-powered automation. UwUlarpy provides uwuification of markdown files, comprehensive code reviews, and intelligent development planning when mentioned in issue comments.
+A powerful Next.js application that transforms your GitHub repositories through AI-powered automation. devwifAI provides comprehensive code reviews, intelligent development planning, and interactive assistance when mentioned in issue comments.
 
 ## Table of Contents
 
@@ -22,10 +22,10 @@ A powerful Next.js application that transforms your GitHub repositories through 
 
 ## Features
 
-UwUlarpy offers a comprehensive suite of AI-powered automation tools designed to enhance your GitHub workflow:
+devwifAI offers a comprehensive suite of AI-powered automation tools designed to enhance your GitHub workflow:
 
 - 🤖 **Intelligent Webhook Processing**: Automatically processes GitHub webhook events for seamless issue comment integration
-- ✨ **Advanced UwUification Engine**: Transforms markdown content with sophisticated text processing while intelligently preserving code blocks and formatting structures
+- ✨ **Advanced Code Analysis Engine**: Transforms and analyzes code with sophisticated processing while intelligently preserving formatting structures
 - 🔍 **AI-Powered Code Review**: Delivers comprehensive, context-aware code reviews on pull requests using cutting-edge AI analysis and best practices
 - 📋 **Automated Development Planning**: Generates detailed development roadmaps with strategic milestones and organized GitHub issue creation
 - ⚡ **Real-time Feedback System**: Provides immediate status updates and progress tracking for all bot interactions
@@ -66,8 +66,8 @@ Before installing UwUlarpy, ensure you have the following:
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/larp0/uwularpy.git
-   cd uwularpy
+   git clone https://github.com/larp-devs/devwif_ai.git
+   cd devwif_ai
    ```
 
 2. **Install dependencies**:
@@ -108,8 +108,8 @@ Before installing UwUlarpy, ensure you have the following:
 
 1. **Using Docker Compose**:
    ```bash
-   git clone https://github.com/larp0/uwularpy.git
-   cd uwularpy
+   git clone https://github.com/larp-devs/devwif_ai.git
+   cd devwif_ai
    cp .env.example .env.local
    # Configure your .env.local file
    docker-compose up -d
@@ -121,7 +121,7 @@ For production deployments, see the [Deployment](#deployment) section below.
 
 ### GitHub App Registration
 
-To use UwUlarpy, you'll need to create a GitHub App:
+To use devwifAI, you'll need to create a GitHub App:
 
 1. Go to GitHub Settings → Developer settings → GitHub Apps
 2. Click "New GitHub App"
@@ -135,37 +135,37 @@ For detailed GitHub App setup instructions, see [DOCUMENTATION.md](DOCUMENTATION
 
 ### Quick Start
 
-1. **Install the UwUlarpy GitHub App** on your target repositories
+1. **Install the devwifAI GitHub App** on your target repositories
 2. **Navigate to any repository issue** where you want to use the bot
-3. **Mention the bot** with `@uwularpy` followed by your command
+3. **Mention the bot** with `@devwif` followed by your command
 4. **Wait for processing** - the bot will reply immediately and process your request
 
 ### Available Commands
 
 | Command | Description | Usage Context |
 |---------|-------------|---------------|
-| `@uwularpy` | Uwuifies all markdown files in the repository | Any issue comment |
-| `@uwularpy r` | Performs comprehensive AI code review | Pull request comments |
-| `@uwularpy plan` | Generates development plan with milestones | Any issue comment |
-| `@uwularpy <custom>` | Processes custom AI-powered requests | Any issue comment |
+| `@devwif` | Performs AI-powered analysis and assistance | Any issue comment |
+| `@devwif r` | Performs comprehensive AI code review | Pull request comments |
+| `@devwif plan` | Generates development plan with milestones | Any issue comment |
+| `@devwif <custom>` | Processes custom AI-powered requests | Any issue comment |
 
 ### Command Examples
 
-#### Basic UwUification
+#### Basic AI Assistance
 ```bash
-# Transform all markdown files in the repository
-@uwularpy
+# Get AI assistance for repository analysis
+@devwif
 
 # The bot will:
-# 1. Scan all .md files in the repo
-# 2. Apply uwuification while preserving code blocks
-# 3. Create a pull request with the changes
+# 1. Analyze the repository structure
+# 2. Provide insights and recommendations
+# 3. Create actionable suggestions
 ```
 
 #### Code Review
 ```bash
 # Request comprehensive code review (use in PR comments)
-@uwularpy r
+@devwif r
 
 # The bot will analyze:
 # - Code quality and best practices
@@ -178,7 +178,7 @@ For detailed GitHub App setup instructions, see [DOCUMENTATION.md](DOCUMENTATION
 #### Development Planning
 ```bash
 # Generate a comprehensive development plan
-@uwularpy plan
+@devwif plan
 
 # Creates:
 # - Repository analysis report
@@ -190,16 +190,16 @@ For detailed GitHub App setup instructions, see [DOCUMENTATION.md](DOCUMENTATION
 #### Custom AI Requests
 ```bash
 # Documentation improvement suggestions
-@uwularpy please help me improve the documentation structure and add missing API references
+@devwif please help me improve the documentation structure and add missing API references
 
 # Security analysis
-@uwularpy analyze the security vulnerabilities in this codebase and suggest improvements
+@devwif analyze the security vulnerabilities in this codebase and suggest improvements
 
 # Performance optimization
-@uwularpy suggest performance improvements for the database queries and API endpoints
+@devwif suggest performance improvements for the database queries and API endpoints
 
 # Architecture review
-@uwularpy review the current architecture and suggest scalability improvements
+@devwif review the current architecture and suggest scalability improvements
 ```
 
 ### Advanced Usage Patterns
@@ -208,32 +208,32 @@ For detailed GitHub App setup instructions, see [DOCUMENTATION.md](DOCUMENTATION
 ```bash
 # Sequential workflow example:
 # 1. First, generate a plan
-@uwularpy plan
+@devwif plan
 
 # 2. Then request specific analysis
-@uwularpy analyze the authentication system for security issues
+@devwif analyze the authentication system for security issues
 
 # 3. Finally, review implementation
-@uwularpy r
+@devwif r
 ```
 
 #### Repository-Specific Requests
 ```bash
 # Framework-specific improvements
-@uwularpy suggest Next.js specific optimizations for this application
+@devwif suggest Next.js specific optimizations for this application
 
 # Language-specific analysis  
-@uwularpy review TypeScript code for type safety improvements
+@devwif review TypeScript code for type safety improvements
 
 # Infrastructure suggestions
-@uwularpy analyze the deployment configuration and suggest improvements
+@devwif analyze the deployment configuration and suggest improvements
 ```
 
 ## Configuration
 
 ### Environment Variables
 
-UwUlarpy uses environment variables for configuration. Create a `.env.local` file with:
+devwifAI uses environment variables for configuration. Create a `.env.local` file with:
 
 ```env
 # Required: GitHub App Configuration
@@ -278,10 +278,10 @@ Your GitHub App requires the following permissions:
 #### UwUification Settings
 ```javascript
 // Configure in your environment or code
-const uwuSettings = {
+const codeSettings = {
   preserveCodeBlocks: true,    // Keep code blocks unchanged
   preserveLinks: true,         // Keep URLs intact
-  intensity: 'medium'          // uwu intensity: low, medium, high
+  analysisDepth: 'comprehensive'  // Analysis depth: basic, standard, comprehensive
 };
 ```
 
@@ -295,7 +295,7 @@ const reviewConfig = {
 };
 ```
 
-The `@uwularpy plan` command creates a comprehensive development analysis including:
+The `@devwif plan` command creates a comprehensive development analysis including:
 
 - **Repository Analysis**: Complete codebase structure and metadata review
 - **Missing Components**: Identification of essential features or infrastructure gaps
@@ -305,7 +305,7 @@ The `@uwularpy plan` command creates a comprehensive development analysis includ
 - **GitHub Integration**: Automatically creates a milestone and individual issues for tracking
 
 Example workflow:
-1. Comment `@uwularpy plan` on any issue
+1. Comment `@devwif plan` on any issue
 2. The bot analyzes your entire repository
 3. A milestone is created with the complete plan
 4. Individual GitHub issues are generated for each action item
@@ -313,7 +313,7 @@ Example workflow:
 
 ## Deployment
 
-UwUlarpy supports multiple deployment options to fit your infrastructure needs:
+devwifAI supports multiple deployment options to fit your infrastructure needs:
 
 ### Vercel (Recommended)
 
@@ -367,16 +367,16 @@ pm2 startup
 #### Using Docker
 ```bash
 # Build the image
-docker build -t uwularpy .
+docker build -t devwifai .
 
 # Run the container
 docker run -d \
-  --name uwularpy \
+  --name devwifai \
   -p 3000:3000 \
   -e APP_ID=your_app_id \
   -e PRIVATE_KEY="your_private_key" \
   -e WEBHOOK_SECRET=your_webhook_secret \
-  uwularpy
+  devwifai
 ```
 
 #### Using Docker Compose
@@ -384,7 +384,7 @@ docker run -d \
 # docker-compose.yml
 version: '3.8'
 services:
-  uwularpy:
+  devwifai:
     build: .
     ports:
       - "3000:3000"
@@ -405,7 +405,7 @@ services:
 
 ## Contributing
 
-We enthusiastically welcome contributions to UwUlarpy! Whether you're fixing bugs, adding features, improving documentation, or sharing ideas, your involvement helps make this project better for everyone.
+We enthusiastically welcome contributions to devwifAI! Whether you're fixing bugs, adding features, improving documentation, or sharing ideas, your involvement helps make this project better for everyone.
 
 ### Development Workflow
 
@@ -442,11 +442,11 @@ flowchart TD
 ```bash
 # Fork the repository on GitHub
 # Then clone your fork
-git clone https://github.com/YOUR_USERNAME/uwularpy.git
-cd uwularpy
+git clone https://github.com/YOUR_USERNAME/devwif_ai.git
+cd devwif_ai
 
 # Add upstream remote for syncing
-git remote add upstream https://github.com/larp0/uwularpy.git
+git remote add upstream https://github.com/larp-devs/devwif_ai.git
 ```
 
 #### 2. Development Environment
@@ -566,7 +566,7 @@ What you expected to happen.
 **Environment**
 - OS: [e.g. iOS]
 - Node.js Version: [e.g. 18.17.0]
-- UwUlarpy Version: [e.g. 1.2.3]
+- devwifAI Version: [e.g. 1.2.3]
 ```
 
 #### ✨ Feature Requests
@@ -646,7 +646,7 @@ If you need help with contributing:
 - Reach out to maintainers directly
 - Join our community chat (if available)
 
-Thank you for contributing to UwUlarpy! 🎉
+Thank you for contributing to devwifAI! 🎉
 
 ## Documentation
 
@@ -654,7 +654,7 @@ For detailed documentation, see [DOCUMENTATION.md](DOCUMENTATION.md)
 
 ## Support
 
-We're committed to providing excellent support for UwUlarpy users and contributors. Here are multiple ways to get help:
+We're committed to providing excellent support for devwifAI users and contributors. Here are multiple ways to get help:
 
 ### 📚 Documentation Resources
 
@@ -666,7 +666,7 @@ We're committed to providing excellent support for UwUlarpy users and contributo
 
 ### 🐛 Bug Reports & Feature Requests
 
-- **[GitHub Issues](https://github.com/larp0/uwularpy/issues)**: Report bugs, request features, or ask technical questions
+- **[GitHub Issues](https://github.com/larp-devs/devwif_ai/issues)**: Report bugs, request features, or ask technical questions
   - Use issue templates for better organization
   - Search existing issues before creating new ones
   - Provide detailed reproduction steps and environment information
@@ -674,7 +674,7 @@ We're committed to providing excellent support for UwUlarpy users and contributo
 
 ### 💬 Community Support
 
-- **[GitHub Discussions](https://github.com/larp0/uwularpy/discussions)**: Community-driven support and discussions
+- **[GitHub Discussions](https://github.com/larp-devs/devwif_ai/discussions)**: Community-driven support and discussions
   - General questions and usage help
   - Feature discussions and feedback
   - Community showcase and examples
@@ -684,8 +684,8 @@ We're committed to providing excellent support for UwUlarpy users and contributo
 
 For urgent matters, security issues, or maintainer-specific questions:
 
-- **Security Issues**: [security@uwularpy.dev](mailto:security@uwularpy.dev)
-- **General Inquiries**: [support@uwularpy.dev](mailto:support@uwularpy.dev)
+- **Security Issues**: [security@devwif.ai](mailto:security@devwif.ai)
+- **General Inquiries**: [support@devwif.ai](mailto:support@devwif.ai)
 - **Maintainer Contact**: [@larp0](https://github.com/larp0)
 
 ### 🔄 Response Times
@@ -743,8 +743,8 @@ Help us improve support for everyone:
 
 ### 🔗 Additional Resources
 
-- **[GitHub Repository](https://github.com/larp0/uwularpy)**: Source code and latest updates
-- **[Release Notes](https://github.com/larp0/uwularpy/releases)**: Information about new features and bug fixes
+- **[GitHub Repository](https://github.com/larp-devs/devwif_ai)**: Source code and latest updates
+- **[Release Notes](https://github.com/larp-devs/devwif_ai/releases)**: Information about new features and bug fixes
 - **[Contributing Guide](CONTRIBUTING.md)**: How to contribute to the project
 - **[Code of Conduct](CODE_OF_CONDUCT.md)**: Community standards and expectations
 
@@ -754,6 +754,6 @@ MIT
 
 ## Acknowledgements
 
-- [uwuify](https://www.npmjs.com/package/uwuify) - The JavaScript library for uwuifying text
+- [OpenAI](https://openai.com/) - AI language model for intelligent assistance
 - [Octokit](https://github.com/octokit) - GitHub API client for JavaScript
 - [Next.js](https://nextjs.org/) - The React framework for production
