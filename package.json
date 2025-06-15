@@ -31,7 +31,7 @@
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
-    "@netlify/plugin-nextjs": "^5.7.2",
+    "@netlify/plugin-nextjs": "^5.11.2",
     "@tailwindcss/postcss": "^4.1.8",
     "@trigger.dev/build": "^3.3.17",
     "@types/jest": "^29.5.14",

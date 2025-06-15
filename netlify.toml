@@ -4,6 +4,7 @@
 
 [build.environment]
   NODE_VERSION = "18"
+  # NPM_FLAGS for Netlify build optimization - uses build cache to speed up installs
   NPM_FLAGS = "--prefix=/opt/buildhome/cache/node_modules"
 
 # Enable Next.js runtime for API routes
@@ -14,11 +15,6 @@
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/___netlify-handler"
-  status = 200
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
   status = 200
 
 # Headers for security and performance
