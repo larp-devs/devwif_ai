@@ -324,12 +324,29 @@ export function sanitizeMermaidDiagram(mermaidDiagram: string): string {
     sanitizedLines.push(sanitizedLine);
   }
 
-  const result = sanitizedLines.join('\n');
+  // Check if this is a flowchart or graph diagram that supports classDef
+  const diagramType = lines.find(line => 
+    line.trim().startsWith('flowchart') || 
+    line.trim().startsWith('graph')
+  );
+  
+  let result = sanitizedLines.join('\n');
+  
+  // Add classDef techDebt styling for flowchart and graph diagrams
+  if (diagramType) {
+    const techDebtClassDef = '  classDef techDebt fill:#f6f6f6,stroke:#d9534f,color:#d9534f,font-family:Consolas,monospace,font-weight:bold;';
+    
+    // Check if classDef already exists to avoid duplication
+    if (!result.includes('classDef techDebt')) {
+      result = result + '\n' + techDebtClassDef;
+    }
+  }
   
   logger.log('Mermaid diagram sanitization complete', {
     originalLength: mermaidDiagram.length,
     sanitizedLength: result.length,
-    linesProcessed: lines.length
+    linesProcessed: lines.length,
+    techDebtClassDefAdded: diagramType ? true : false
   });
 
   return result;
