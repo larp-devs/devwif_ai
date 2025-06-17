@@ -1,0 +1,61 @@
+name: PR Comment Bot
+
+on:
+  pull_request:
+    types: [synchronize]
+
+jobs:
+  comment:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+
+    steps:
+      - name: Comment '@l r' on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            
+            console.log(`Processing PR #${prNumber} in ${owner}/${repo}`);
+            
+            // Check for existing '@l r' comments from the bot in the last 24 hours
+            const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+            
+            try {
+              const { data: comments } = await github.rest.issues.listComments({
+                owner,
+                repo,
+                issue_number: prNumber,
+                since: twentyFourHoursAgo
+              });
+              
+              // Check if there's already a recent '@l r' comment from github-actions bot
+              const existingComment = comments.find(comment => 
+                comment.user.type === 'Bot' && 
+                comment.user.login === 'github-actions[bot]' &&
+                comment.body.trim() === '@l r'
+              );
+              
+              if (existingComment) {
+                console.log(`Found existing '@l r' comment from ${existingComment.created_at}, skipping to avoid spam`);
+                return;
+              }
+              
+              // Post the '@l r' comment
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: prNumber,
+                body: '@l r'
+              });
+              
+              console.log(`Successfully posted '@l r' comment on PR #${prNumber}`);
+              
+            } catch (error) {
+              console.error('Error processing PR comment:', error);
+              core.setFailed(`Failed to process PR comment: ${error.message}`);
+            }
