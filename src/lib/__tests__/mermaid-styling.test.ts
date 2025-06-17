@@ -2,26 +2,18 @@ import { sanitizeMermaidDiagram } from '../ai-sanitizer';
 
 describe('Mermaid Diagram Styling', () => {
   describe('classDef techDebt styling', () => {
-    it('should add classDef techDebt styling to flowchart diagrams', () => {
-      const input = `flowchart TD
+    it.each([
+      { type: 'flowchart TD', expectedType: 'flowchart TD' },
+      { type: 'graph LR', expectedType: 'graph LR' }
+    ])('should add classDef techDebt styling to $type diagrams', ({ type, expectedType }) => {
+      const input = `${type}
   A["Start Node"] --> B["End Node"]`;
 
       const result = sanitizeMermaidDiagram(input);
       
-      expect(result).toContain('flowchart TD');
+      expect(result).toContain(expectedType);
       expect(result).toContain('A["StartNode"] --> B["EndNode"]');
-      expect(result).toContain('classDef techDebt fill:#f6f6f6,stroke:#d9534f,color:#d9534f,font-family:Consolas,monospace,font-weight:bold;');
-    });
-
-    it('should add classDef techDebt styling to graph diagrams', () => {
-      const input = `graph LR
-  A["Start Node"] --> B["End Node"]`;
-
-      const result = sanitizeMermaidDiagram(input);
-      
-      expect(result).toContain('graph LR');
-      expect(result).toContain('A["StartNode"] --> B["EndNode"]');
-      expect(result).toContain('classDef techDebt fill:#f6f6f6,stroke:#d9534f,color:#d9534f,font-family:Consolas,monospace,font-weight:bold;');
+      expect(result).toContain('classDef techDebt fill:#f6f6f6,stroke:#d9534f,color:#d9534f,font-family:Consolas,monospace,font-weight:bold');
     });
 
     it('should not add classDef techDebt styling to non-flowchart diagrams', () => {
@@ -38,7 +30,7 @@ describe('Mermaid Diagram Styling', () => {
     it('should not duplicate classDef techDebt if it already exists', () => {
       const input = `flowchart TD
   A["Start Node"] --> B["End Node"]
-  classDef techDebt fill:#f6f6f6,stroke:#d9534f,color:#d9534f,font-family:Consolas,monospace,font-weight:bold;`;
+  classDef techDebt fill:#f6f6f6,stroke:#d9534f,color:#d9534f,font-family:Consolas,monospace,font-weight:bold`;
 
       const result = sanitizeMermaidDiagram(input);
       
@@ -65,7 +57,7 @@ describe('Mermaid Diagram Styling', () => {
       expect(result).toContain('C["SuccessDone"]');
       expect(result).toContain('D["ErrorFailed"]');
       expect(result).toContain('style A fill:#f9f,stroke:#333,stroke-width:4px');
-      expect(result).toContain('classDef techDebt fill:#f6f6f6,stroke:#d9534f,color:#d9534f,font-family:Consolas,monospace,font-weight:bold;');
+      expect(result).toContain('classDef techDebt fill:#f6f6f6,stroke:#d9534f,color:#d9534f,font-family:Consolas,monospace,font-weight:bold');
     });
 
     it('should handle different flowchart orientations', () => {
@@ -88,7 +80,7 @@ describe('Mermaid Diagram Styling', () => {
         
         expect(result).toContain(orientation);
         expect(result).toContain('A["Node"] --> B["Node"]');
-        expect(result).toContain('classDef techDebt fill:#f6f6f6,stroke:#d9534f,color:#d9534f,font-family:Consolas,monospace,font-weight:bold;');
+        expect(result).toContain('classDef techDebt fill:#f6f6f6,stroke:#d9534f,color:#d9534f,font-family:Consolas,monospace,font-weight:bold');
       });
     });
 
@@ -98,7 +90,7 @@ describe('Mermaid Diagram Styling', () => {
       const result = sanitizeMermaidDiagram(input);
       
       expect(result).toContain('flowchart TD');
-      expect(result).toContain('classDef techDebt fill:#f6f6f6,stroke:#d9534f,color:#d9534f,font-family:Consolas,monospace,font-weight:bold;');
+      expect(result).toContain('classDef techDebt fill:#f6f6f6,stroke:#d9534f,color:#d9534f,font-family:Consolas,monospace,font-weight:bold');
     });
 
     it('should handle flowchart with comments and preserve them', () => {
@@ -114,7 +106,7 @@ describe('Mermaid Diagram Styling', () => {
       expect(result).toContain('%% Another comment');
       expect(result).toContain('A["Nodetest"]');
       expect(result).toContain('B["Nodetest"]');
-      expect(result).toContain('classDef techDebt fill:#f6f6f6,stroke:#d9534f,color:#d9534f,font-family:Consolas,monospace,font-weight:bold;');
+      expect(result).toContain('classDef techDebt fill:#f6f6f6,stroke:#d9534f,color:#d9534f,font-family:Consolas,monospace,font-weight:bold');
     });
   });
 });

@@ -59,7 +59,7 @@ describe('Mermaid Diagram Sanitizer', () => {
       const expected = `flowchart TD
   alpha["Nodealpha"] --> beta["BetaHello"]
   beta --> gamma["Gammawithsymbols"];
-  classDef techDebt fill:#f6f6f6,stroke:#d9534f,color:#d9534f,font-family:Consolas,monospace,font-weight:bold;`;
+classDef techDebt fill:#f6f6f6,stroke:#d9534f,color:#d9534f,font-family:Consolas,monospace,font-weight:bold`;
 
       expect(sanitizeMermaidDiagram(input)).toBe(expected);
     });
@@ -278,10 +278,10 @@ End of analysis.`;
       expect(result).toContain('graph LR');
       
       // Should add classDef techDebt styling to both diagrams
-      expect(result).toMatch(/classDef techDebt[^;]*;/g);
+      expect(result).toMatch(/classDef techDebt/g);
       
       // Count occurrences - should be 2 (one for each diagram)
-      const classDefMatches = result.match(/classDef techDebt[^;]*;/g);
+      const classDefMatches = result.match(/classDef techDebt/g);
       expect(classDefMatches).toHaveLength(2);
     });
 

@@ -334,7 +334,7 @@ export function sanitizeMermaidDiagram(mermaidDiagram: string): string {
   
   // Add classDef techDebt styling for flowchart and graph diagrams
   if (diagramType) {
-    const techDebtClassDef = '  classDef techDebt fill:#f6f6f6,stroke:#d9534f,color:#d9534f,font-family:Consolas,monospace,font-weight:bold;';
+    const techDebtClassDef = 'classDef techDebt fill:#f6f6f6,stroke:#d9534f,color:#d9534f,font-family:Consolas,monospace,font-weight:bold';
     
     // Check if classDef already exists to avoid duplication
     if (!result.includes('classDef techDebt')) {
@@ -342,11 +342,9 @@ export function sanitizeMermaidDiagram(mermaidDiagram: string): string {
     }
   }
   
-  logger.log('Mermaid diagram sanitization complete', {
-    originalLength: mermaidDiagram.length,
-    sanitizedLength: result.length,
-    linesProcessed: lines.length,
-    techDebtClassDefAdded: diagramType ? true : false
+  logger.log('Mermaid diagram sanitized', {
+    lines: lines.length,
+    techDebtAdded: !!diagramType
   });
 
   return result;
