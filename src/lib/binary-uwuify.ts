@@ -5,7 +5,7 @@ import { execSync, spawnSync, spawn, exec } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { logger } from "@trigger.dev/sdk/v3";
+import { logger } from "@trigger.dev/sdk";
 import { createAppAuth } from '@octokit/auth-app';
 
 /** 

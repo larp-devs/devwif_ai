@@ -2,7 +2,7 @@ import { execSync, spawn } from "child_process";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
-import { logger } from "@trigger.dev/sdk/v3";
+import { logger } from "@trigger.dev/sdk";
 import { createAppAuth } from "@octokit/auth-app";
 import { safeGitCommit, hasStageChanges, getStagedDiff, setGitUser, getRepositoryStructure, getRepositoryStructureAsync, safeGitCommand, safeGitPushWithRetry } from "./git-utils";
 import { generateCommitMessage, generateCodeChanges } from "./openai-operations";

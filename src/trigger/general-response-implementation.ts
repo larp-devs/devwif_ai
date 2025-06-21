@@ -1,6 +1,6 @@
 // src/trigger/general-response-implementation.ts
 
-import { logger } from "@trigger.dev/sdk/v3";
+import { logger } from "@trigger.dev/sdk";
 import { GitHubContext } from "../services/task-types";
 import { createAuthenticatedOctokit } from "./github-auth";
 import { sanitizeMermaidDiagramsInResponse } from "../lib/ai-sanitizer";

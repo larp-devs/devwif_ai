@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
-import { logger } from "@trigger.dev/sdk/v3";
+import { logger } from "@trigger.dev/sdk";
 import { extractSearchReplaceBlocks, sanitizeFilePath } from "./ai-sanitizer";
 import { getFileOperationsConfig } from "./config";
 

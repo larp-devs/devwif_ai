@@ -1,7 +1,7 @@
 import { parseReviewContent, generateAgentPrompt } from '../agent-prompt-generator';
 
 // Mock logger to avoid dependency issues in tests
-jest.mock('@trigger.dev/sdk/v3', () => ({
+jest.mock('@trigger.dev/sdk', () => ({
   logger: {
     log: jest.fn(),
     warn: jest.fn(),
