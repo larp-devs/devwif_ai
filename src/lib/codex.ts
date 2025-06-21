@@ -174,27 +174,27 @@ export async function codexRepository(
     // Set Git identity using safe utilities
     setGitUser(tempDir, "bot@larp.dev", "larp0");
 
-    // Use modern OpenAI API to process the repository
+    // Use @openai/codex CLI to process the repository
     let generationResult: CodeGenerationResult;
     try {
       generationResult = await runModernCodeGeneration(prompt, tempDir);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      logger.error("Code generation failed", { error: errorMessage });
+      logger.error("Codex CLI generation failed", { error: errorMessage });
       
       // Return error result with clear metadata
       generationResult = {
         success: false,
         responses: [],
         isErrorFallback: true,
-        errorMessage: `Code generation failed: ${errorMessage}`
+        errorMessage: `Codex CLI failed: ${errorMessage}`
       };
     }
     
     let totalChangesApplied = 0;
     
     if (generationResult.success && generationResult.responses.length > 0) {
-      logger.log("Modern code generation completed", { responsesCount: generationResult.responses.length });
+      logger.log("Codex CLI generation completed", { responsesCount: generationResult.responses.length });
       
       // Process search/replace operations from all responses
       for (let i = 0; i < generationResult.responses.length; i++) {
@@ -227,11 +227,11 @@ export async function codexRepository(
       // Update the generation result with actual changes applied
       generationResult.changesApplied = totalChangesApplied;
     } else if (generationResult.isErrorFallback) {
-      logger.error("Code generation failed, no changes will be applied", { 
+      logger.error("Codex CLI generation failed, no changes will be applied", { 
         errorMessage: generationResult.errorMessage 
       });
     } else {
-      logger.log("No responses generated from code generation");
+      logger.log("No responses generated from Codex CLI");
     }
 
     // Commit and push changes using safe git utilities
@@ -243,12 +243,12 @@ export async function codexRepository(
     // Generate AI commit message based on success/failure and actual changes
     let commitMessage: string;
     if (generationResult.isErrorFallback) {
-      commitMessage = `Code generation failed: ${generationResult.errorMessage?.split(':')[1]?.trim() || 'Unknown error'}`;
+      commitMessage = `Codex CLI failed: ${generationResult.errorMessage?.split(':')[1]?.trim() || 'Unknown error'}`;
     } else {
       const diffContent = hasChanges ? getStagedDiff(tempDir) : '';
       commitMessage = hasChanges 
         ? await generateCommitMessage(diffContent)
-        : `OpenAI code generation completed (${totalChangesApplied} changes applied)`;
+        : `Codex CLI completed (${totalChangesApplied} changes applied)`;
     }
     
     // Use safe git commit that prevents shell injection
@@ -276,16 +276,14 @@ export async function codexRepository(
 }
 
 /**
- * DEPRECATED: Run the @openai/codex CLI tool to process code generation requests.
- * This function is no longer used as it was causing failures.
- * Use generateCodeChanges from openai-operations.ts instead.
+ * Run the @openai/codex CLI tool to process code generation requests.
+ * Uses the official Codex CLI with codex-mini-latest model for enhanced code generation.
  * 
  * @param prompt - The initial prompt for code generation.
  * @param repositoryContext - Repository context information.
  * @param repoPath - Path to the repository directory.
  * @returns Generated response from the CLI tool.
  */
-/*
 async function runCodexCLI(prompt: string, repositoryContext: string, repoPath: string): Promise<string> {
   try {
     logger.log("Running @openai/codex CLI tool", { 
@@ -296,14 +294,15 @@ async function runCodexCLI(prompt: string, repositoryContext: string, repoPath: 
 
     // Prepare the enhanced prompt with repository context
     const enhancedPrompt = repositoryContext 
-      ? `REPOSITORY CONTEXT:\n${repositoryContext}\n\nUSER REQUEST:\n${prompt}\n\nPlease generate the necessary code changes.`
-      : `USER REQUEST:\n${prompt}\n\nPlease generate the necessary code changes.`;
+      ? `REPOSITORY CONTEXT:\n${repositoryContext}\n\nUSER REQUEST:\n${prompt}\n\nPlease generate the necessary code changes using SEARCH/REPLACE blocks.`
+      : `USER REQUEST:\n${prompt}\n\nPlease generate the necessary code changes using SEARCH/REPLACE blocks.`;
 
     // Execute the @openai/codex CLI tool with correct usage
     // Use exec subcommand for non-interactive mode, --full-auto for automatic execution
-    // Pass --cd to specify working directory, and prompt as positional argument
+    // Pass --cd to specify working directory, --model for codex-mini-latest, and prompt as positional argument
     const command = [
       'npx', '@openai/codex', 'exec', 
+      '--model', 'codex-mini-latest',
       '--full-auto',
       '--cd', repoPath,
       enhancedPrompt
@@ -332,17 +331,17 @@ async function runCodexCLI(prompt: string, repositoryContext: string, repoPath: 
     throw new Error(`@openai/codex CLI failed: ${errorMessage}`);
   }
 }
-*/
 
 /**
- * Run the modern OpenAI API to process the repository.
+ * Run the @openai/codex CLI to process the repository.
+ * Uses the official Codex CLI with codex-mini-latest model for enhanced code generation.
  * @param prompt - The initial prompt for code generation.
  * @param repoPath - Path to the repository directory.
  * @returns CodeGenerationResult with success status and metadata.
  */
 async function runModernCodeGeneration(prompt: string, repoPath: string): Promise<CodeGenerationResult> {
   try {
-    logger.log("Running modern code generation with OpenAI API", { promptLength: prompt.length, repoPath });
+    logger.log("Running code generation with @openai/codex CLI", { promptLength: prompt.length, repoPath });
     
     // Get repository context for better code generation
     let repositoryContext = '';
@@ -361,14 +360,14 @@ async function runModernCodeGeneration(prompt: string, repoPath: string): Promis
           asyncError: String(error),
           syncError: String(fallbackError)
         });
-        // Continue without context - the API can still work
+        // Continue without context - the CLI can still work
       }
     }
     
-    // Generate code changes using OpenAI API directly
-    const response = await generateCodeChanges(prompt, repositoryContext);
+    // Generate code changes using @openai/codex CLI
+    const response = await runCodexCLI(prompt, repositoryContext, repoPath);
     
-    logger.log("Code generation completed", { 
+    logger.log("Codex CLI generation completed", { 
       responseLength: response.length,
       hasSearchReplace: response.includes('search-replace')
     });
@@ -383,7 +382,7 @@ async function runModernCodeGeneration(prompt: string, repoPath: string): Promis
     
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logger.error("Modern code generation failed", { 
+    logger.error("Codex CLI generation failed", { 
       error: errorMessage,
       promptLength: prompt.length
     });
@@ -393,7 +392,7 @@ async function runModernCodeGeneration(prompt: string, repoPath: string): Promis
       success: false,
       responses: [],
       isErrorFallback: true,
-      errorMessage: `Code generation failed: ${errorMessage}`
+      errorMessage: `Codex CLI failed: ${errorMessage}`
     };
   }
 }

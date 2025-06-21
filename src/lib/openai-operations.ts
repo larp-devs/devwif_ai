@@ -194,7 +194,7 @@ export async function generateCommitMessage(diffContent: string): Promise<string
     logger.warn("Failed to generate AI commit message, using fallback", { 
       error: error instanceof Error ? error.message : String(error) 
     });
-    return "Apply changes from OpenAI API self-ask flow";
+    return "Apply changes from Codex CLI self-ask flow";
   }
 }
 
