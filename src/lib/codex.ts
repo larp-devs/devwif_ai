@@ -320,7 +320,7 @@ export function executeCommand(
   args: string[], 
   options: { 
     encoding?: BufferEncoding; 
-    env?: Record<string, string>; 
+    env?: NodeJS.ProcessEnv; 
     timeout?: number;
     cwd?: string;
   } = {}
@@ -331,15 +331,15 @@ export function executeCommand(
     let stdout = '';
     let stderr = '';
     
-    child.stdout?.on('data', (data) => {
+    child.stdout?.on('data', (data: Buffer) => {
       stdout += data.toString();
     });
     
-    child.stderr?.on('data', (data) => {
+    child.stderr?.on('data', (data: Buffer) => {
       stderr += data.toString();
     });
     
-    child.on('close', (code) => {
+    child.on('close', (code: number | null) => {
       if (code === 0) {
         resolve(stdout);
       } else {
@@ -347,7 +347,7 @@ export function executeCommand(
       }
     });
     
-    child.on('error', (error) => {
+    child.on('error', (error: Error) => {
       reject(error);
     });
   });
@@ -400,7 +400,7 @@ export async function runCodexCLI(prompt: string, repositoryContext: string, rep
       encoding: 'utf-8',
       env: {
         ...process.env,
-        OPENAI_API_KEY: process.env.OPENAI_API_KEY
+        OPENAI_API_KEY: process.env.OPENAI_API_KEY || ''
       },
       timeout: 300000 // 5 minutes timeout
     });
