@@ -1,4 +1,4 @@
-import { logger as triggerLogger } from "@trigger.dev/sdk/v3";
+import { logger as triggerLogger } from "@trigger.dev/sdk";
 
 /**
  * Structured logging utility for better traceability and consistency.

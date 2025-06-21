@@ -6,7 +6,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { Command } from "commander";
 import { codexRepository } from "./codex";
-import { logger } from "@trigger.dev/sdk/v3";
+import { logger } from "@trigger.dev/sdk";
 
 // Create a new command instance
 const program = new Command();

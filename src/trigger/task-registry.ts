@@ -1,6 +1,6 @@
 // src/trigger/task-registry.ts
 
-import { task } from "@trigger.dev/sdk/v3";
+import { task } from "@trigger.dev/sdk";
 import { GitHubContext } from "../services/task-types";
 
 // Export the task definition separately from the implementation

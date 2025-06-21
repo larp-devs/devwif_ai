@@ -21,19 +21,20 @@
     "@octokit/auth-app": "^8.0.1",
     "@octokit/rest": "^22.0.0",
     "@openai/codex": "^0.1.2505291658",
-    "@trigger.dev/sdk": "^3.3.17",
+    "@trigger.dev/sdk": "^4.0.0-v4-beta.21",
     "axios": "^1.9.0",
     "commander": "^14.0.0",
     "dotenv": "^16.5.0",
     "next": "^15.3.3",
     "openai": "^5.1.0",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "zod": "^3.25.67"
   },
   "devDependencies": {
     "@netlify/plugin-nextjs": "^5.11.2",
     "@tailwindcss/postcss": "^4.1.8",
-    "@trigger.dev/build": "^3.3.17",
+    "@trigger.dev/build": "^4.0.0-v4-beta.21",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.15.29",
     "@types/react": "^19.1.6",

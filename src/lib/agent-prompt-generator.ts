@@ -1,4 +1,4 @@
-import { logger } from "@trigger.dev/sdk/v3";
+import { logger } from "@trigger.dev/sdk";
 
 /**
  * Generates a structured prompt for AI agents based on code review content

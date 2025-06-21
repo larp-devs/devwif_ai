@@ -1,4 +1,4 @@
-import { logger } from "@trigger.dev/sdk/v3";
+import { logger } from "@trigger.dev/sdk";
 
 /**
  * Utilities for sanitizing and validating AI-generated content.

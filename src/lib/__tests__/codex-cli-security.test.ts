@@ -8,7 +8,7 @@ jest.mock('child_process', () => ({
 }));
 
 // Mock the logger
-jest.mock('@trigger.dev/sdk/v3', () => ({
+jest.mock('@trigger.dev/sdk', () => ({
   logger: {
     log: jest.fn(),
     error: jest.fn(),
@@ -238,7 +238,7 @@ describe('Codex CLI Security Tests', () => {
 
   describe('Logging Security', () => {
     test('should redact sensitive information from logs', async () => {
-      const { logger } = require('@trigger.dev/sdk/v3');
+      const { logger } = require('@trigger.dev/sdk');
       
       try {
         await runCodexCLI('test prompt', 'test context', '/test/path');
@@ -385,7 +385,7 @@ describe('Integration Test Scenarios', () => {
     });
 
     test('should log security information appropriately', async () => {
-      const { logger } = require('@trigger.dev/sdk/v3');
+      const { logger } = require('@trigger.dev/sdk');
       
       await runCodexCLI('test prompt with sensitive data', 'context', '/path');
       

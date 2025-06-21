@@ -44,7 +44,7 @@ jest.mock('../structured-logger', () => ({
 }));
 
 // Mock the trigger logger
-jest.mock('@trigger.dev/sdk/v3', () => ({
+jest.mock('@trigger.dev/sdk', () => ({
   logger: {
     log: jest.fn(),
     error: jest.fn(),

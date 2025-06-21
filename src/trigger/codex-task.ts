@@ -1,6 +1,6 @@
 // src/trigger/uwuify-implementation.ts
 
-import { logger } from "@trigger.dev/sdk/v3";
+import { logger } from "@trigger.dev/sdk";
 import { Octokit } from "@octokit/rest";
 import { createAppAuth } from "@octokit/auth-app";
 import { GitHubContext, RepoStats } from "../services/task-types";
