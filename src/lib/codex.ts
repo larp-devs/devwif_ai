@@ -141,11 +141,11 @@ export async function codexRepository(
   installationId?: string
 ): Promise<string> {
   try {
-    logger.log("codexRepository start", { repoUrl, branchName });
+    logger.log("CODEX_REPO: Starting codexRepository", { repoUrl, branchName });
 
     // Create temporary workspace
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "repo-"));
-    logger.log("created temp dir", { tempDir });
+    logger.log("CODEX_REPO: Created temp dir", { tempDir });
 
     // Prepare authenticated URL if GitHub App creds are provided
     let cloneUrl = repoUrl;
@@ -161,9 +161,11 @@ export async function codexRepository(
         });
         const originHost = repoUrl.replace(REGEX_PATTERNS.HTTP_PROTOCOL, "");
         cloneUrl = `https://x-access-token:${installation.token}@${originHost}`;
-        logger.log("using authenticated GitHub URL");
+        logger.log("CODEX_REPO: Using authenticated GitHub URL");
       } catch (err) {
-        logger.warn("GitHub authentication failed, using original URL", { error: (err as Error).message });
+        logger.warn("CODEX_REPO_WARN: GitHub authentication failed, using original URL", { 
+          error: (err as Error).message 
+        });
       }
     }
 
@@ -180,7 +182,7 @@ export async function codexRepository(
       generationResult = await runCodexGeneration(prompt, tempDir);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      logger.error("Codex CLI generation failed", { error: errorMessage });
+      logger.error("CODEX_REPO_ERROR: Codex CLI generation failed", { error: errorMessage });
       
       // Return error result with clear metadata
       generationResult = {
@@ -194,16 +196,21 @@ export async function codexRepository(
     let totalChangesApplied = 0;
     
     if (generationResult.success && generationResult.responses.length > 0) {
-      logger.log("Codex CLI generation completed", { responsesCount: generationResult.responses.length });
+      logger.log("CODEX_REPO: Codex CLI generation completed", { 
+        responsesCount: generationResult.responses.length 
+      });
       
       // Process search/replace operations from all responses
       for (let i = 0; i < generationResult.responses.length; i++) {
         const response = generationResult.responses[i];
-        logger.log("Processing response", { index: i + 1, responseLength: response.length });
+        logger.log("CODEX_REPO: Processing response", { 
+          index: i + 1, 
+          responseLength: response.length 
+        });
         
         // Run evaluator-optimizer on the reply
         const optimizedReply = evaluateAndOptimize(response, tempDir);
-        logger.log("Evaluated and optimized reply", {
+        logger.log("CODEX_REPO: Evaluated and optimized reply", {
           iteration: i + 1,
           originalLength: response.length,
           optimizedLength: optimizedReply.length
@@ -215,7 +222,7 @@ export async function codexRepository(
         totalChangesApplied += successfulChanges;
         
         if (searchReplaceChanges.length > 0) {
-          logger.log("Applied search/replace operations", {
+          logger.log("CODEX_REPO: Applied search/replace operations", {
             iteration: i + 1,
             changesCount: searchReplaceChanges.length,
             successfulChanges,
@@ -227,11 +234,11 @@ export async function codexRepository(
       // Update the generation result with actual changes applied
       generationResult.changesApplied = totalChangesApplied;
     } else if (generationResult.isErrorFallback) {
-      logger.error("Codex CLI generation failed, no changes will be applied", { 
+      logger.error("CODEX_REPO_ERROR: Codex CLI generation failed, no changes will be applied", { 
         errorMessage: generationResult.errorMessage 
       });
     } else {
-      logger.log("No responses generated from Codex CLI");
+      logger.log("CODEX_REPO: No responses generated from Codex CLI");
     }
 
     // Commit and push changes using safe git utilities
@@ -270,7 +277,11 @@ export async function codexRepository(
     } else {
       msg = 'Unknown error';
     }
-    logger.error("codexRepository failed", { error: msg, repoUrl, branchName });
+    logger.error("CODEX_REPO_ERROR: codexRepository failed", { 
+      error: msg, 
+      repoUrl, 
+      branchName 
+    });
     throw new Error(`Error processing repository ${repoUrl}: ${msg}. Please check repository settings and try again.`);
   }
 }
@@ -282,15 +293,17 @@ export async function codexRepository(
  * @param input - The input string to sanitize
  * @returns Sanitized string safe for shell execution
  */
-function sanitizePrompt(input: string): string {
+export function sanitizePrompt(input: string): string {
   if (!input) return '';
   
   // Remove or escape potentially dangerous shell characters
+  // Character class properly escapes square brackets and backslashes
   return input
-    .replace(/[`$(){}[\]|&;<>]/g, '') // Remove shell special characters
-    .replace(/\\/g, '\\\\') // Escape backslashes
+    .replace(/[`$(){}[\]|&;<>]/g, '') // Remove shell special characters (brackets are properly escaped in character class)
+    .replace(/\\/g, '\\\\') // Escape backslashes  
     .replace(/"/g, '\\"') // Escape double quotes
     .replace(/'/g, "\\'") // Escape single quotes
+    .replace(/\s+/g, ' ') // Normalize whitespace
     .trim();
 }
 
@@ -302,7 +315,16 @@ function sanitizePrompt(input: string): string {
  * @param options - Spawn options
  * @returns Promise that resolves to the command output
  */
-function executeCommand(command: string, args: string[], options: Record<string, unknown> = {}): Promise<string> {
+export function executeCommand(
+  command: string, 
+  args: string[], 
+  options: { 
+    encoding?: BufferEncoding; 
+    env?: Record<string, string>; 
+    timeout?: number;
+    cwd?: string;
+  } = {}
+): Promise<string> {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, options);
     
@@ -341,9 +363,9 @@ function executeCommand(command: string, args: string[], options: Record<string,
  * @param repoPath - Path to the repository directory.
  * @returns Generated response from the CLI tool.
  */
-async function runCodexCLI(prompt: string, repositoryContext: string, repoPath: string): Promise<string> {
+export async function runCodexCLI(prompt: string, repositoryContext: string, repoPath: string): Promise<string> {
   try {
-    logger.log("Running @openai/codex CLI tool", { 
+    logger.log("CODEX_CLI: Starting @openai/codex CLI tool", { 
       promptLength: prompt.length,
       contextLength: repositoryContext.length,
       repoPath 
@@ -369,7 +391,7 @@ async function runCodexCLI(prompt: string, repositoryContext: string, repoPath: 
       enhancedPrompt
     ];
     
-    logger.log("Executing @openai/codex CLI", { 
+    logger.log("CODEX_CLI: Executing @openai/codex CLI", { 
       command: 'npx',
       args: args.slice(0, -1).concat(['[PROMPT_REDACTED]']) // Log without full prompt for security
     });
@@ -383,14 +405,14 @@ async function runCodexCLI(prompt: string, repositoryContext: string, repoPath: 
       timeout: 300000 // 5 minutes timeout
     });
 
-    logger.log("@openai/codex CLI completed successfully", { 
+    logger.log("CODEX_CLI: @openai/codex CLI completed successfully", { 
       responseLength: response.length 
     });
 
     return response;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logger.error("@openai/codex CLI failed", { error: errorMessage });
+    logger.error("CODEX_CLI_ERROR: @openai/codex CLI failed", { error: errorMessage });
     throw new Error(`@openai/codex CLI failed: ${errorMessage}`);
   }
 }
@@ -404,22 +426,31 @@ async function runCodexCLI(prompt: string, repositoryContext: string, repoPath: 
  */
 async function runCodexGeneration(prompt: string, repoPath: string): Promise<CodeGenerationResult> {
   try {
-    logger.log("Running code generation with @openai/codex CLI", { promptLength: prompt.length, repoPath });
+    logger.log("CODEX_GENERATION: Starting code generation with @openai/codex CLI", { 
+      promptLength: prompt.length, 
+      repoPath 
+    });
     
     // Get repository context for better code generation
     let repositoryContext = '';
     try {
       // Use async version for better performance with large repositories
       repositoryContext = await getRepositoryStructureAsync(repoPath);
-      logger.log("Repository context gathered", { contextLength: repositoryContext.length });
+      logger.log("CODEX_GENERATION: Repository context gathered", { 
+        contextLength: repositoryContext.length 
+      });
     } catch (error) {
-      logger.warn("Failed to gather repository context", { error: String(error) });
+      logger.warn("CODEX_GENERATION_WARN: Failed to gather repository context", { 
+        error: String(error) 
+      });
       // Fallback to synchronous version as last resort
       try {
         repositoryContext = getRepositoryStructure(repoPath);
-        logger.log("Repository context gathered (fallback)", { contextLength: repositoryContext.length });
+        logger.log("CODEX_GENERATION: Repository context gathered (fallback)", { 
+          contextLength: repositoryContext.length 
+        });
       } catch (fallbackError) {
-        logger.warn("Both async and sync repository context gathering failed", { 
+        logger.warn("CODEX_GENERATION_WARN: Both async and sync repository context gathering failed", { 
           asyncError: String(error),
           syncError: String(fallbackError)
         });
@@ -430,7 +461,7 @@ async function runCodexGeneration(prompt: string, repoPath: string): Promise<Cod
     // Generate code changes using @openai/codex CLI
     const response = await runCodexCLI(prompt, repositoryContext, repoPath);
     
-    logger.log("Codex CLI generation completed", { 
+    logger.log("CODEX_GENERATION: Codex CLI generation completed", { 
       responseLength: response.length,
       hasSearchReplace: response.includes('search-replace')
     });
@@ -445,7 +476,7 @@ async function runCodexGeneration(prompt: string, repoPath: string): Promise<Cod
     
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logger.error("Codex CLI generation failed", { 
+    logger.error("CODEX_GENERATION_ERROR: Codex CLI generation failed", { 
       error: errorMessage,
       promptLength: prompt.length
     });

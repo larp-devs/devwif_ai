@@ -1,5 +1,6 @@
 import { jest } from '@jest/globals';
 import { spawn } from 'child_process';
+import type { ChildProcess } from 'child_process';
 
 // Mock the spawn function
 jest.mock('child_process', () => ({
@@ -15,25 +16,38 @@ jest.mock('@trigger.dev/sdk/v3', () => ({
   }
 }));
 
-// Import the module under test after mocking
+// Import the functions under test after mocking
+import { sanitizePrompt, executeCommand, runCodexCLI } from '../codex';
+
 const mockSpawn = spawn as jest.MockedFunction<typeof spawn>;
 
 // Mock process.env for tests
 const originalEnv = process.env;
 
+// Properly typed mock child process
+interface MockChildProcess {
+  stdout: {
+    on: jest.MockedFunction<(event: string, callback: (data: Buffer) => void) => void>;
+  };
+  stderr: {
+    on: jest.MockedFunction<(event: string, callback: (data: Buffer) => void) => void>;
+  };
+  on: jest.MockedFunction<(event: string, callback: (codeOrError: number | Error) => void) => void>;
+}
+
 describe('Codex CLI Security Tests', () => {
-  let mockChild: any;
+  let mockChild: MockChildProcess;
 
   beforeEach(() => {
     jest.clearAllMocks();
     process.env = { ...originalEnv, OPENAI_API_KEY: 'test-key' };
     
-    // Create a mock child process
+    // Create a properly typed mock child process
     mockChild = {
       stdout: {
         on: jest.fn((event, callback) => {
           if (event === 'data') {
-            setTimeout(() => callback('test output'), 10);
+            setTimeout(() => callback(Buffer.from('test output')), 10);
           }
         })
       },
@@ -47,7 +61,7 @@ describe('Codex CLI Security Tests', () => {
       })
     };
     
-    mockSpawn.mockReturnValue(mockChild);
+    mockSpawn.mockReturnValue(mockChild as unknown as ChildProcess);
   });
 
   afterEach(() => {
@@ -56,45 +70,45 @@ describe('Codex CLI Security Tests', () => {
 
   describe('sanitizePrompt', () => {
     test('should remove shell special characters', () => {
-      // We need to test this indirectly since it's not exported
-      // This test verifies that malicious input doesn't cause shell injection
       const maliciousInput = 'test; rm -rf /; echo "hacked"';
+      const sanitized = sanitizePrompt(maliciousInput);
       
-      // We'll mock spawn to verify the args passed don't contain dangerous characters
-      mockSpawn.mockImplementation((command, args) => {
-        // Verify that malicious shell characters are sanitized from args
-        const lastArg = args[args.length - 1];
-        expect(lastArg).not.toContain(';');
-        expect(lastArg).not.toContain('rm -rf');
-        
-        return mockChild;
-      });
-      
-      // Import and call the function with malicious input
-      // Since runCodexCLI is not exported, we need to test through the public interface
-      // This is a design choice to keep internal functions private
+      expect(sanitized).not.toContain(';');
+      expect(sanitized).not.toContain('rm -rf');
+      expect(sanitized).not.toContain('|');
+      expect(sanitized).not.toContain('&');
+      expect(sanitized).not.toContain('`');
+      expect(sanitized).not.toContain('$');
     });
 
     test('should handle empty input safely', () => {
-      mockSpawn.mockImplementation((command, args) => {
-        // Verify that empty inputs are handled safely
-        expect(args).toBeDefined();
-        expect(Array.isArray(args)).toBe(true);
-        return mockChild;
-      });
+      expect(sanitizePrompt('')).toBe('');
+      expect(sanitizePrompt(null as any)).toBe('');
+      expect(sanitizePrompt(undefined as any)).toBe('');
     });
 
     test('should escape quotes and backslashes', () => {
       const inputWithQuotes = 'test "quoted" and \\backslash';
+      const sanitized = sanitizePrompt(inputWithQuotes);
       
-      mockSpawn.mockImplementation((command, args) => {
-        const lastArg = args[args.length - 1];
-        // Should escape quotes and backslashes
-        expect(lastArg).toContain('\\"');
-        expect(lastArg).toContain('\\\\');
-        
-        return mockChild;
-      });
+      expect(sanitized).toContain('\\"');
+      expect(sanitized).toContain('\\\\');
+    });
+
+    test('should normalize whitespace', () => {
+      const inputWithWhitespace = 'test    multiple   spaces\n\nand\ttabs';
+      const sanitized = sanitizePrompt(inputWithWhitespace);
+      
+      expect(sanitized).not.toContain('    ');
+      expect(sanitized).not.toContain('\n\n');
+      expect(sanitized).not.toContain('\t');
+    });
+
+    test('should handle all dangerous characters', () => {
+      const dangerousChars = '`$(){}[]|&;<>';
+      const sanitized = sanitizePrompt(`safe text ${dangerousChars} more text`);
+      
+      expect(sanitized).toBe('safe text  more text');
     });
   });
 
@@ -106,14 +120,15 @@ describe('Codex CLI Security Tests', () => {
         }
       });
 
-      // Test will pass if the mocked command completes successfully
-      expect(mockSpawn).toBeDefined();
+      const result = await executeCommand('test', ['arg1', 'arg2']);
+      expect(result).toBe('test output');
+      expect(mockSpawn).toHaveBeenCalledWith('test', ['arg1', 'arg2'], {});
     });
 
     test('should handle command failure with non-zero exit code', async () => {
       mockChild.stderr.on.mockImplementation((event, callback) => {
         if (event === 'data') {
-          callback('Error message');
+          callback(Buffer.from('Error message'));
         }
       });
       
@@ -123,8 +138,7 @@ describe('Codex CLI Security Tests', () => {
         }
       });
 
-      // Verify error handling is properly implemented
-      expect(mockChild.on).toBeDefined();
+      await expect(executeCommand('test', ['arg1'])).rejects.toThrow('Command failed with code 1: Error message');
     });
 
     test('should handle command execution errors', async () => {
@@ -134,8 +148,19 @@ describe('Codex CLI Security Tests', () => {
         }
       });
 
-      // Verify error event handling
-      expect(mockChild.on).toBeDefined();
+      await expect(executeCommand('test', ['arg1'])).rejects.toThrow('Spawn error');
+    });
+
+    test('should pass options correctly', async () => {
+      const options = {
+        encoding: 'utf-8' as BufferEncoding,
+        env: { TEST_VAR: 'test' },
+        timeout: 5000,
+        cwd: '/test/path'
+      };
+
+      await executeCommand('test', ['arg1'], options);
+      expect(mockSpawn).toHaveBeenCalledWith('test', ['arg1'], options);
     });
   });
 
@@ -152,10 +177,10 @@ describe('Codex CLI Security Tests', () => {
         expect(args[4]).toBe('--full-auto');
         expect(args[5]).toBe('--cd');
         
-        return mockChild;
+        return mockChild as unknown as ChildProcess;
       });
       
-      // Test verifies the argument structure is correct
+      // This will be tested in the integration tests
     });
 
     test('should not concatenate command into single string', () => {
@@ -167,7 +192,7 @@ describe('Codex CLI Security Tests', () => {
         expect(typeof command).toBe('string');
         expect(command).not.toContain(' '); // Should be just 'npx', not a full command
         
-        return mockChild;
+        return mockChild as unknown as ChildProcess;
       });
       
       expect(commandString).toBeUndefined(); // Will be set during actual call
@@ -180,7 +205,7 @@ describe('Codex CLI Security Tests', () => {
         expect(options.env).toBeDefined();
         expect(options.env.OPENAI_API_KEY).toBe('test-key');
         
-        return mockChild;
+        return mockChild as unknown as ChildProcess;
       });
     });
 
@@ -191,7 +216,7 @@ describe('Codex CLI Security Tests', () => {
         expect(options.env).toBeDefined();
         // Should still work even without API key (CLI should handle the error)
         
-        return mockChild;
+        return mockChild as unknown as ChildProcess;
       });
     });
   });
@@ -201,30 +226,30 @@ describe('Codex CLI Security Tests', () => {
       mockSpawn.mockImplementation((command, args, options) => {
         expect(options.timeout).toBe(300000); // 5 minutes
         
-        return mockChild;
+        return mockChild as unknown as ChildProcess;
       });
     });
   });
 
   describe('Logging Security', () => {
-    test('should redact sensitive information from logs', () => {
+    test('should redact sensitive information from logs', async () => {
       const { logger } = require('@trigger.dev/sdk/v3');
       
-      mockSpawn.mockImplementation((command, args) => {
-        // Verify that the full prompt is not logged for security
-        expect(logger.log).toHaveBeenCalled();
-        
-        // Check that logs don't contain the full prompt content
-        const logCalls = (logger.log as jest.Mock).mock.calls;
-        const argsLog = logCalls.find(call => call[1]?.args);
-        
-        if (argsLog) {
-          const loggedArgs = argsLog[1].args;
-          expect(loggedArgs[loggedArgs.length - 1]).toBe('[PROMPT_REDACTED]');
-        }
-        
-        return mockChild;
-      });
+      try {
+        await runCodexCLI('test prompt', 'test context', '/test/path');
+      } catch {
+        // Ignore execution errors, we're testing logging
+      }
+      
+      // Check that logs don't contain the full prompt content
+      expect(logger.log).toHaveBeenCalled();
+      const logCalls = (logger.log as jest.Mock).mock.calls;
+      const argsLog = logCalls.find(call => call[1]?.args);
+      
+      if (argsLog) {
+        const loggedArgs = argsLog[1].args;
+        expect(loggedArgs[loggedArgs.length - 1]).toBe('[PROMPT_REDACTED]');
+      }
     });
   });
 });
@@ -246,13 +271,167 @@ describe('Integration Test Scenarios', () => {
     ];
 
     testCases.forEach(testCase => {
-      mockSpawn.mockImplementation((command, args) => {
-        // Verify each test case is handled safely
+      const sanitized = sanitizePrompt(testCase);
+      
+      // Verify each test case is handled safely
+      expect(typeof sanitized).toBe('string');
+      expect(sanitized).not.toContain(';');
+      expect(sanitized).not.toContain('|');
+      expect(sanitized).not.toContain('&');
+      expect(sanitized).not.toContain('`');
+      expect(sanitized).not.toContain('$');
+      expect(sanitized).not.toContain('(');
+      expect(sanitized).not.toContain(')');
+    });
+  });
+
+  describe('runCodexCLI Integration Tests', () => {
+    test('should execute CLI with proper arguments and security', async () => {
+      const testPrompt = 'Create a test function';
+      const testContext = 'This is test context';
+      const testRepoPath = '/test/repo';
+
+      mockSpawn.mockImplementation((command, args, options) => {
+        // Verify command structure
         expect(command).toBe('npx');
-        expect(Array.isArray(args)).toBe(true);
+        expect(args[0]).toBe('@openai/codex');
+        expect(args[1]).toBe('exec');
+        expect(args[2]).toBe('--model');
+        expect(args[3]).toBe('codex-mini-latest');
+        expect(args[4]).toBe('--full-auto');
+        expect(args[5]).toBe('--cd');
+        expect(args[6]).toBe(testRepoPath);
         
-        return mockChild;
+        // Verify the prompt contains expected content but is sanitized
+        const enhancedPrompt = args[7];
+        expect(enhancedPrompt).toContain('USER REQUEST:');
+        expect(enhancedPrompt).toContain('REPOSITORY CONTEXT:');
+        expect(enhancedPrompt).toContain('SEARCH/REPLACE blocks');
+        
+        // Verify options
+        expect(options.encoding).toBe('utf-8');
+        expect(options.env.OPENAI_API_KEY).toBe('test-key');
+        expect(options.timeout).toBe(300000);
+        
+        return mockChild as unknown as ChildProcess;
       });
+
+      const result = await runCodexCLI(testPrompt, testContext, testRepoPath);
+      expect(result).toBe('test output');
+    });
+
+    test('should handle CLI execution errors gracefully', async () => {
+      mockChild.on.mockImplementation((event, callback) => {
+        if (event === 'close') {
+          setTimeout(() => callback(1), 10); // Failure code
+        }
+      });
+      
+      mockChild.stderr.on.mockImplementation((event, callback) => {
+        if (event === 'data') {
+          callback(Buffer.from('CLI execution failed'));
+        }
+      });
+
+      await expect(runCodexCLI('test', 'context', '/path')).rejects.toThrow(
+        'Command failed with code 1: CLI execution failed'
+      );
+    });
+
+    test('should sanitize all inputs before CLI execution', async () => {
+      const maliciousPrompt = 'test; rm -rf /; echo "hacked"';
+      const maliciousContext = 'context && dangerous command';
+      const maliciousPath = '/path`ls -la`';
+
+      mockSpawn.mockImplementation((command, args, options) => {
+        // Verify all inputs are sanitized
+        const repoPath = args[6];
+        const enhancedPrompt = args[7];
+        
+        expect(repoPath).not.toContain('`');
+        expect(repoPath).not.toContain('ls -la');
+        expect(enhancedPrompt).not.toContain(';');
+        expect(enhancedPrompt).not.toContain('rm -rf');
+        expect(enhancedPrompt).not.toContain('&&');
+        expect(enhancedPrompt).not.toContain('dangerous command');
+        
+        return mockChild as unknown as ChildProcess;
+      });
+
+      await runCodexCLI(maliciousPrompt, maliciousContext, maliciousPath);
+    });
+
+    test('should handle empty inputs safely', async () => {
+      mockSpawn.mockImplementation((command, args, options) => {
+        // Should still construct valid command even with empty inputs
+        expect(command).toBe('npx');
+        expect(args.length).toBe(8); // All args should be present
+        expect(args[7]).toContain('USER REQUEST:');
+        
+        return mockChild as unknown as ChildProcess;
+      });
+
+      await runCodexCLI('', '', '');
+    });
+
+    test('should log security information appropriately', async () => {
+      const { logger } = require('@trigger.dev/sdk/v3');
+      
+      await runCodexCLI('test prompt with sensitive data', 'context', '/path');
+      
+      // Verify logging calls with security prefixes
+      expect(logger.log).toHaveBeenCalledWith(
+        'CODEX_CLI: Starting @openai/codex CLI tool',
+        expect.any(Object)
+      );
+      
+      expect(logger.log).toHaveBeenCalledWith(
+        'CODEX_CLI: Executing @openai/codex CLI',
+        expect.objectContaining({
+          command: 'npx',
+          args: expect.arrayContaining(['[PROMPT_REDACTED]'])
+        })
+      );
+      
+      expect(logger.log).toHaveBeenCalledWith(
+        'CODEX_CLI: @openai/codex CLI completed successfully',
+        expect.any(Object)
+      );
+    });
+
+    test('should handle spawn errors appropriately', async () => {
+      mockChild.on.mockImplementation((event, callback) => {
+        if (event === 'error') {
+          setTimeout(() => callback(new Error('Spawn failed')), 10);
+        }
+      });
+
+      await expect(runCodexCLI('test', 'context', '/path')).rejects.toThrow(
+        '@openai/codex CLI failed: Spawn failed'
+      );
+    });
+
+    test('should handle missing environment variables', async () => {
+      delete process.env.OPENAI_API_KEY;
+      
+      mockSpawn.mockImplementation((command, args, options) => {
+        expect(options.env.OPENAI_API_KEY).toBeUndefined();
+        return mockChild as unknown as ChildProcess;
+      });
+
+      await runCodexCLI('test', 'context', '/path');
+    });
+
+    test('should handle context-only prompts', async () => {
+      mockSpawn.mockImplementation((command, args, options) => {
+        const enhancedPrompt = args[7];
+        expect(enhancedPrompt).not.toContain('REPOSITORY CONTEXT:');
+        expect(enhancedPrompt).toContain('USER REQUEST:');
+        
+        return mockChild as unknown as ChildProcess;
+      });
+
+      await runCodexCLI('test prompt', '', '/path');
     });
   });
 });
