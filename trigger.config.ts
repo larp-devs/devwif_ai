@@ -3,7 +3,7 @@ import { additionalFiles } from "@trigger.dev/build/extensions/core";
 
 export default defineConfig({
   project: "proj_xadoucnepuzlmbifjvgz",
-  runtime: "node",
+  runtime: "node-22",
   logLevel: "debug",
   // Specify machine preset for Node.js >=22.0.0 compatibility
   machine: "small-1x",
