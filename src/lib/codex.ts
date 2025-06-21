@@ -1,4 +1,4 @@
-import { execSync } from "child_process";
+import { execSync, spawn } from "child_process";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
@@ -177,7 +177,7 @@ export async function codexRepository(
     // Use @openai/codex CLI to process the repository
     let generationResult: CodeGenerationResult;
     try {
-      generationResult = await runModernCodeGeneration(prompt, tempDir);
+      generationResult = await runCodexGeneration(prompt, tempDir);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error("Codex CLI generation failed", { error: errorMessage });
@@ -276,8 +276,65 @@ export async function codexRepository(
 }
 
 /**
+ * Sanitize prompt strings to prevent shell injection attacks.
+ * Removes or escapes shell special characters that could be exploited.
+ * 
+ * @param input - The input string to sanitize
+ * @returns Sanitized string safe for shell execution
+ */
+function sanitizePrompt(input: string): string {
+  if (!input) return '';
+  
+  // Remove or escape potentially dangerous shell characters
+  return input
+    .replace(/[`$(){}[\]|&;<>]/g, '') // Remove shell special characters
+    .replace(/\\/g, '\\\\') // Escape backslashes
+    .replace(/"/g, '\\"') // Escape double quotes
+    .replace(/'/g, "\\'") // Escape single quotes
+    .trim();
+}
+
+/**
+ * Execute a command using spawn for security (prevents command injection).
+ * 
+ * @param command - Command to execute
+ * @param args - Arguments array
+ * @param options - Spawn options
+ * @returns Promise that resolves to the command output
+ */
+function executeCommand(command: string, args: string[], options: Record<string, unknown> = {}): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args, options);
+    
+    let stdout = '';
+    let stderr = '';
+    
+    child.stdout?.on('data', (data) => {
+      stdout += data.toString();
+    });
+    
+    child.stderr?.on('data', (data) => {
+      stderr += data.toString();
+    });
+    
+    child.on('close', (code) => {
+      if (code === 0) {
+        resolve(stdout);
+      } else {
+        reject(new Error(`Command failed with code ${code}: ${stderr}`));
+      }
+    });
+    
+    child.on('error', (error) => {
+      reject(error);
+    });
+  });
+}
+
+/**
  * Run the @openai/codex CLI tool to process code generation requests.
  * Uses the official Codex CLI with codex-mini-latest model for enhanced code generation.
+ * SECURITY: Uses spawn with args array to prevent command injection attacks.
  * 
  * @param prompt - The initial prompt for code generation.
  * @param repositoryContext - Repository context information.
@@ -292,27 +349,33 @@ async function runCodexCLI(prompt: string, repositoryContext: string, repoPath: 
       repoPath 
     });
 
-    // Prepare the enhanced prompt with repository context
-    const enhancedPrompt = repositoryContext 
-      ? `REPOSITORY CONTEXT:\n${repositoryContext}\n\nUSER REQUEST:\n${prompt}\n\nPlease generate the necessary code changes using SEARCH/REPLACE blocks.`
-      : `USER REQUEST:\n${prompt}\n\nPlease generate the necessary code changes using SEARCH/REPLACE blocks.`;
+    // Sanitize inputs to prevent shell injection
+    const sanitizedPrompt = sanitizePrompt(prompt);
+    const sanitizedContext = sanitizePrompt(repositoryContext);
+    const sanitizedRepoPath = sanitizePrompt(repoPath);
 
-    // Execute the @openai/codex CLI tool with correct usage
-    // Use exec subcommand for non-interactive mode, --full-auto for automatic execution
-    // Pass --cd to specify working directory, --model for codex-mini-latest, and prompt as positional argument
-    const command = [
-      'npx', '@openai/codex', 'exec', 
+    // Prepare the enhanced prompt with repository context
+    const enhancedPrompt = sanitizedContext 
+      ? `REPOSITORY CONTEXT:\n${sanitizedContext}\n\nUSER REQUEST:\n${sanitizedPrompt}\n\nPlease generate the necessary code changes using SEARCH/REPLACE blocks.`
+      : `USER REQUEST:\n${sanitizedPrompt}\n\nPlease generate the necessary code changes using SEARCH/REPLACE blocks.`;
+
+    // Execute the @openai/codex CLI tool using secure spawn with args array
+    // This prevents command injection by treating each argument separately
+    const args = [
+      '@openai/codex', 'exec', 
       '--model', 'codex-mini-latest',
       '--full-auto',
-      '--cd', repoPath,
+      '--cd', sanitizedRepoPath,
       enhancedPrompt
     ];
     
-    logger.log("Executing @openai/codex CLI", { command: command.join(' ') });
+    logger.log("Executing @openai/codex CLI", { 
+      command: 'npx',
+      args: args.slice(0, -1).concat(['[PROMPT_REDACTED]']) // Log without full prompt for security
+    });
     
-    const response = execSync(command.join(' '), {
+    const response = await executeCommand('npx', args, {
       encoding: 'utf-8',
-      stdio: ['pipe', 'pipe', 'pipe'], // stdin, stdout, stderr
       env: {
         ...process.env,
         OPENAI_API_KEY: process.env.OPENAI_API_KEY
@@ -339,7 +402,7 @@ async function runCodexCLI(prompt: string, repositoryContext: string, repoPath: 
  * @param repoPath - Path to the repository directory.
  * @returns CodeGenerationResult with success status and metadata.
  */
-async function runModernCodeGeneration(prompt: string, repoPath: string): Promise<CodeGenerationResult> {
+async function runCodexGeneration(prompt: string, repoPath: string): Promise<CodeGenerationResult> {
   try {
     logger.log("Running code generation with @openai/codex CLI", { promptLength: prompt.length, repoPath });
     
