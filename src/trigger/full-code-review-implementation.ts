@@ -4,6 +4,7 @@ import { createAppAuth } from "@octokit/auth-app";
 import { GitHubContext } from "../services/task-types";
 import { COPILOT_USERNAME } from "./workflow-constants";
 import { sanitizeMermaidDiagramsInResponse } from "../lib/ai-sanitizer";
+import { generateAgentPrompt } from "../lib/agent-prompt-generator";
 
 // Export the full code review implementation
 export async function runFullCodeReviewTask(payload: GitHubContext, ctx: any) {
@@ -284,8 +285,19 @@ Avoid any escape characters or parentheses in both node names and labels    one 
     `🛑 OpenAI returned an empty review. Please try again later.\n\n` +
     `Error details: ${errorMessage || "Unknown error"}`;
   
+  // Generate agent prompt if we have a successful review
+  let agentPrompt = '';
+  if (review.trim()) {
+    agentPrompt = generateAgentPrompt(review);
+  }
+  
+  // Combine the review with the agent prompt
+  const finalCommentBody = agentPrompt 
+    ? `${commentBody}\n\n${agentPrompt}`
+    : commentBody;
+  
   // Sanitize any Mermaid diagrams in the response before posting
-  const sanitizedCommentBody = sanitizeMermaidDiagramsInResponse(commentBody);
+  const sanitizedCommentBody = sanitizeMermaidDiagramsInResponse(finalCommentBody);
   
   await octokit.issues.createComment({
     owner,
@@ -335,10 +347,18 @@ ${projectReview}
 
 @${COPILOT_USERNAME}`;
 
-    // 5. Sanitize any Mermaid diagrams in the response before posting
-    const sanitizedFinalComment = sanitizeMermaidDiagramsInResponse(finalComment);
+    // 5. Generate agent prompt from the project review
+    const agentPrompt = generateAgentPrompt(projectReview);
+    
+    // 6. Combine the final comment with agent prompt if available
+    const completeComment = agentPrompt 
+      ? `${finalComment}\n\n${agentPrompt}`
+      : finalComment;
 
-    // 6. Post the comment
+    // 7. Sanitize any Mermaid diagrams in the response before posting
+    const sanitizedFinalComment = sanitizeMermaidDiagramsInResponse(completeComment);
+
+    // 8. Post the comment
     await octokit.issues.createComment({
       owner,
       repo,
@@ -346,7 +366,7 @@ ${projectReview}
       body: sanitizedFinalComment
     });
 
-    // 7. Assign the issue to copilot
+    // 9. Assign the issue to copilot
     await assignIssueToCopilot(octokit, owner, repo, issue);
 
     logger.log("Successfully completed issue code review workflow", { issueNumber });
