@@ -7,7 +7,7 @@ import { logger } from "@trigger.dev/sdk/v3";
 
 export interface ParsedComment {
   location?: string;
-  codeContext?: string;
+  codeContext?: string[];
   issueToAddress: string;
 }
 
@@ -49,8 +49,11 @@ export function parseReviewContent(reviewContent: string): ParsedReview {
       continue;
     }
 
-    // Look for file/location patterns (e.g., "src/file.ts:123")
-    const locationMatch = line.match(/^[\*\-\s]*`?([^`]+\.(ts|js|tsx|jsx|py|java|cpp|c|h|rs|go|php|rb|swift|kt|scala|sh|yaml|yml|json|md):[0-9]+)`?/);
+    // Look for file/location patterns with enhanced regex for uncommon paths/extensions
+    // Supports: absolute paths, relative paths, unusual extensions, nested directories, Windows paths
+    const locationMatch = line.match(/^[\*\-\s]*`?([^`]+\.(ts|js|tsx|jsx|py|java|cpp|c|h|rs|go|php|rb|swift|kt|scala|sh|yaml|yml|json|md|txt|xml|css|scss|less|vue|svelte|dart|r|sql|lua|perl|haskell|clj|cljs|ml|fs|vb|cs|asm|s|S|pas|pp|inc|bat|cmd|ps1|psm1|psd1|dockerfile|makefile|cmake|gradle|sbt|toml|ini|cfg|conf|properties|lock):[0-9]+)`?/) ||
+                         line.match(/^[\*\-\s]*`?((?:[a-zA-Z]:)?[\/\\]?[^`\s]+(?:[\/\\][^`\s\/\\]+)*\.[a-zA-Z0-9_.-]+:[0-9]+)`?/) ||
+                         line.match(/`([^`\s]+\.[a-zA-Z0-9_.-]+:[0-9]+)`/);
     if (locationMatch) {
       // Save previous comment if exists
       if (currentComment.issueToAddress) {
@@ -76,9 +79,28 @@ export function parseReviewContent(reviewContent: string): ParsedReview {
       continue;
     }
 
-    // Look for code context (lines with + or -)
+    // Look for code context (lines with + or -, collect multiple lines for richer context)
     if (currentComment.location && !currentComment.codeContext && (line.includes('+') || line.includes('-'))) {
-      currentComment.codeContext = line;
+      // Start collecting code context as an array
+      currentComment.codeContext = [line];
+      // Look ahead for additional context lines
+      let j = i + 1;
+      while (j < lines.length && j < i + 10) { // Limit to prevent infinite loop
+        const nextLine = lines[j];
+        // Continue collecting if it's code context (diff lines, indented code, etc.)
+        if (nextLine.includes('+') || nextLine.includes('-') || 
+            nextLine.startsWith('  ') || nextLine.startsWith('\t') ||
+            nextLine.match(/^\s*[a-zA-Z_${}()[\];.,]/)) {
+          currentComment.codeContext.push(nextLine);
+          j++;
+        } else if (nextLine.trim() === '') {
+          // Skip empty lines but continue
+          j++;
+        } else {
+          // Hit non-code content, stop collecting
+          break;
+        }
+      }
       continue;
     }
 
@@ -186,8 +208,8 @@ export function generateAgentPrompt(reviewContent: string): string {
         prompt += ` \`${comment.location}\` \n`;
       }
       
-      if (comment.codeContext) {
-        prompt += `${comment.codeContext}\n\n`;
+      if (comment.codeContext && comment.codeContext.length > 0) {
+        prompt += `\`\`\`\n${comment.codeContext.join('\n')}\n\`\`\`\n\n`;
       }
       
       prompt += `<issue_to_address>\n${comment.issueToAddress}\n</issue_to_address>\n\n`;
