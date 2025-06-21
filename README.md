@@ -1,7 +1,7 @@
 # devwifAI
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js Version](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org/)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D22-brightgreen)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
 A powerful Next.js application that transforms your GitHub repositories through AI-powered automation. devwifAI provides comprehensive code reviews, intelligent development planning, and interactive assistance when mentioned in issue comments.
@@ -46,7 +46,7 @@ devwifAI offers a comprehensive suite of AI-powered automation tools designed to
 
 ### Prerequisites
 
-- Node.js 18+ and npm
+- Node.js 22+ and npm
 - A GitHub account
 - A registered GitHub App with appropriate permissions
 
